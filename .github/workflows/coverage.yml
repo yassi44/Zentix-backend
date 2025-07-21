@@ -1,0 +1,58 @@
+name: Backend Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: ["backend/**"]
+  pull_request:
+    branches: [ main, develop ]
+    paths: ["backend/**"]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Create .env file for tests
+      run: |
+        echo "PRIVATE_KEY=0x0000000000000000000000000000000000000000000000000000000000000001" > .env
+        echo "SEPOLIA_RPC_URL=https://rpc.sepolia.org" >> .env
+        echo "ETHERSCAN_API_KEY=dummy_key_for_tests" >> .env
+      
+    - name: Compile contracts
+      run: npx hardhat compile
+      
+    - name: Run tests with coverage
+      run: npx hardhat coverage
+      
+    - name: Generate coverage summary
+      run: |
+        echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        if [ -f coverage/coverage-summary.json ]; then
+          node -e "
+            const coverage = require('./coverage/coverage-summary.json');
+            console.log('📁 File Coverage:');
+            console.log('Lines:      ' + coverage.total.lines.pct + '%');
+            console.log('Functions:  ' + coverage.total.functions.pct + '%');
+            console.log('Branches:   ' + coverage.total.branches.pct + '%');
+            console.log('Statements: ' + coverage.total.statements.pct + '%');
+          " >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
