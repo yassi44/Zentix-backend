@@ -25,7 +25,7 @@ contract ZentixVault is Ownable, ReentrancyGuard, Pausable {
     uint256 private constant USDC_DECIMALS = 6;
 
     /// @dev Dépôt minimum : 50 USDC
-    uint256 public constant MIN_DEPOSIT = 10 * 10 ** USDC_DECIMALS;
+    uint256 public constant MIN_DEPOSIT = 50 * 10 ** USDC_DECIMALS;
 
     /// @dev Dépôt maximum : 5000 USDC
     uint256 public constant MAX_DEPOSIT = 5000 * 10 ** USDC_DECIMALS;
@@ -181,6 +181,12 @@ contract ZentixVault is Ownable, ReentrancyGuard, Pausable {
         );
         aUSDC = reserveData.aTokenAddress;
         require(aUSDC != address(0), "ZentixVault: aUSDC address not found");
+
+        // Approuve le pool Aave pour gérer un montant très élevé d’USDC (quasi illimité)
+        usdc.approve(_aavePool, type(uint256).max);
+
+        // Approve le AavePool pour pouvoir retirer les aUSDC 
+        IERC20(aUSDC).approve(address(_aavePool), type(uint256).max);
 
         // La réclamation est désactivée par défaut
         claimEnabled = false;
