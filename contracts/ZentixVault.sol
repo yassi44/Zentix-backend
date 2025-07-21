@@ -14,8 +14,6 @@ import "@aave/core-v3/contracts/protocol/libraries/types/DataTypes.sol";
 /**
  * @title ZentixVault
  * @notice Coffre d'épargne automatisé USDC avec intégration Aave v3 et système d'XP
- * @dev Contrat upgradable permettant aux utilisateurs de déposer de l'USDC, d'investir automatiquement sur Aave v3,
- *      de suivre l'XP utilisateur et de fournir un système de réclamation pour des récompenses futures
  * 
  */
 contract ZentixVault is Ownable, ReentrancyGuard, Pausable {
